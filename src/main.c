@@ -32,50 +32,16 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-/*
-    Function to generate a grid texture
-    Used to generate a ground texture later in the program.
-*/
-Texture2D GenTextureGrid(uint16_t gridSize, uint8_t cellSize)
-{
-    uint8_t* data = (uint8_t*)calloc(gridSize * gridSize, 1);
+/* PRE DECLARATION */
 
-    for (uint16_t y = 0; y < gridSize; y += cellSize)
-    {
-        for (uint16_t x = 0; x < gridSize; x += cellSize)
-        {
-            data[y * gridSize + x] = 0xFF;
-            data[(y + cellSize - 1) * gridSize + x] = 0xFF;
-            data[y * gridSize + x + (cellSize - 1)] = 0xFF;
-            data[(y + cellSize - 1) * gridSize + (x + cellSize - 1)] = 0xFF;
-
-            for (uint16_t i = 1; i < cellSize - 1; i++)
-            {
-                data[y * gridSize + (x + i)] = 0xFF;
-                data[(y + i) * gridSize + x] = 0xFF;
-
-                data[(y + cellSize - 1) * gridSize + (x + i)] = 0xFF;
-                data[(y + i) * gridSize + (x + cellSize - 1)] = 0xFF;
-            }
-        }
-    }
-
-    Texture2D texture = LoadTextureFromImage((Image){
-        .data = data, .width = gridSize, .height = gridSize,
-        .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE
-    });
-
-    free(data);
-
-    return texture;
-}
+Texture2D GenTextureGrid(uint16_t gridSize, uint8_t cellSize);
+void DrawRenderInfo(M7_Camera* camera);
 
 /* PROGRAM */
 
 int main(void)
 {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "M7-Demo");
-    SetTargetFPS(60);
 
     // Data loading
 
@@ -121,7 +87,7 @@ int main(void)
             firstCharacter->onWorld.position = wPos;
         }
 
-        // The commented out call below is used to render everything automatically in one call,
+        // The commented-out call below is used to render everything automatically in one call,
         // but this method only supports displaying a single ground texture.
 
         //M7_Camera_Update(
@@ -150,7 +116,7 @@ int main(void)
         BeginDrawing();
             ClearBackground(BLACK);
             M7_Camera_Render(&camera);
-            DrawFPS(8,8);
+            DrawRenderInfo(&camera);
         EndDrawing();
     }
 
@@ -165,4 +131,73 @@ int main(void)
     CloseWindow();
 
     return 0;
+}
+
+/*
+    Function to generate a grid texture
+    Used to generate a ground texture later in the program.
+*/
+Texture2D GenTextureGrid(uint16_t gridSize, uint8_t cellSize)
+{
+    uint8_t* data = (uint8_t*)calloc(gridSize * gridSize, 1);
+
+    for (uint16_t y = 0; y < gridSize; y += cellSize)
+    {
+        for (uint16_t x = 0; x < gridSize; x += cellSize)
+        {
+            data[y * gridSize + x] = 0xFF;
+            data[(y + cellSize - 1) * gridSize + x] = 0xFF;
+            data[y * gridSize + x + (cellSize - 1)] = 0xFF;
+            data[(y + cellSize - 1) * gridSize + (x + cellSize - 1)] = 0xFF;
+
+            for (uint16_t i = 1; i < cellSize - 1; i++)
+            {
+                data[y * gridSize + (x + i)] = 0xFF;
+                data[(y + i) * gridSize + x] = 0xFF;
+
+                data[(y + cellSize - 1) * gridSize + (x + i)] = 0xFF;
+                data[(y + i) * gridSize + (x + cellSize - 1)] = 0xFF;
+            }
+        }
+    }
+
+    Texture2D texture = LoadTextureFromImage((Image){
+        .data = data, .width = gridSize, .height = gridSize,
+        .mipmaps = 1, .format = PIXELFORMAT_UNCOMPRESSED_GRAYSCALE
+    });
+
+    free(data);
+
+    return texture;
+}
+
+/*
+    Display data related to the camera and rendering in general
+*/
+void DrawRenderInfo(M7_Camera* camera)
+{
+    Rectangle rec = { 8, 8, 320, 216 };
+
+    // Info frame
+
+    DrawRectangleRec(rec, ColorAlpha(LIGHTGRAY, 0.65f));
+    DrawRectangleLinesEx(rec, 3, DARKGRAY);
+
+    // FPS info
+
+    DrawText(TextFormat("FPS: %i", GetFPS()), 16, 16, 20, BLACK);
+    DrawText(TextFormat("MS/Frame: %.2f", 1000 * GetFrameTime()), 162, 16, 20, BLACK);
+
+    // Camera info
+
+    DrawText("Camera:", 16, 56, 20, BLACK);
+    DrawText(TextFormat("Position: { %.2f, %.2f }", camera->position.x, camera->position.y), 32, 76, 20, BLACK);
+    DrawText(TextFormat("Rotation: %f", camera->rotation), 32, 96, 20, BLACK);
+    DrawText(TextFormat("Zoom: %f", camera->zoom), 32, 116, 20, BLACK);
+    DrawText(TextFormat("FOV: %f", camera->fov), 32, 136, 20, BLACK);
+    DrawText(TextFormat("Offset: %f", camera->offset), 32, 156, 20, BLACK);
+
+    // Sprites info
+
+    DrawText(TextFormat("Sprite count: %i", camera->buffer.count), 16, 196, 20, BLACK);
 }
