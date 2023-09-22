@@ -93,13 +93,21 @@ int main(void)
         //M7_Camera_Update(
         //    &camera,
         //    textureGround,
-        //    (Vector2) { 256, 256 },
-        //    (Vector2){ 1.0f, 1.0f },
+        //    (Vector2) { 0, 0 },
+        //    (Vector2){ 8.0f, 8.0f },
         //    IsKeyDown(KEY_SPACE), BLUE);
 
         // Update mode7 rendering (advanced method to render multiple ground textures)
 
         M7_Camera_Begin(&camera, BLUE);
+
+            if (IsKeyDown(KEY_SPACE))
+            {
+                M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) {0},
+                    (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, true);
+
+                goto skipTilesRendering;
+            }
 
             // NOTE: Displaying as many planes for performance testing purposes
 
@@ -110,21 +118,21 @@ int main(void)
                     M7_Camera_DrawPlane(
                         &camera, textureGround, (Vector2) { x, y },
                         (Vector2) { textureGround.width, textureGround.height },
-                        (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+                        (Vector2){ 1.0f, 1.0f }, false);
                 }
             }
 
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, 0 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, 0 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            for (int y = -1; y <= 1; y++)
+            {
+                for (int x = -1; x <= 1; x++)
+                {
+                    if (x || y) M7_Camera_DrawPlane(
+                        &camera, textureGrid, (Vector2) { x * 512, y * 512 },
+                        (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, false);
+                }
+            }
 
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 0, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 0, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            skipTilesRendering:
 
         M7_Camera_End(&camera);
 

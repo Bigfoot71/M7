@@ -308,7 +308,10 @@ void M7_Camera_Unload(M7_Camera* camera)
 void M7_Camera_Update(M7_Camera* camera, Texture2D texture, Vector2 position, Vector2 scale, int wrap, Color backgroundColor)
 {
     M7_Camera_Begin(camera, backgroundColor);
-        M7_Camera_DrawPlane(camera, texture, position, (Vector2) { texture.width * 0.5f, texture.height * 0.5f }, scale, wrap);
+        M7_Camera_DrawPlane(camera, texture, position, (Vector2) {
+                (texture.width * scale.x) * 0.5f,
+                (texture.height * scale.y) * 0.5f
+            }, scale, wrap);
     M7_Camera_End(camera);
 }
 
