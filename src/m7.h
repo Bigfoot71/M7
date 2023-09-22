@@ -67,7 +67,7 @@ static const char M7_PlaneFragment[] =
         "}"
         "else"
         "{"
-            "fragColor = texture(map, fract(uv));"
+            "fragColor = texture(map, uv);"
         "}"
     "}";
 
@@ -162,14 +162,14 @@ M7_Camera M7_Camera_Load(int screenWidth, int screenHeight, Vector2 position, fl
 void M7_Camera_Unload(M7_Camera* camera);
 
 // Update the camera for rendering:
-// - For a single plane (simple update) with the provided texture, origin, scale, wrap, and background color
+// - For a single plane (simple update) with the provided texture, position, scale, wrap, and background color
 // - For multiple planes (advanced update) with the given background color
-void M7_Camera_Update(M7_Camera* camera, Texture2D texture, Vector2 origin, Vector2 scale, int wrap, Color backgroundColor);
+void M7_Camera_Update(M7_Camera* camera, Texture2D texture, Vector2 position, Vector2 scale, int wrap, Color backgroundColor);
 void M7_Camera_Begin(M7_Camera* camera, Color backgroundColor);
 void M7_Camera_End(M7_Camera* camera);
 
-// Render a plane (to be used in advanced mode) with the provided texture, origin, scale, and wrap
-void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 origin, Vector2 scale, int wrap);
+// Render a plane (to be used in advanced mode) with the provided texture, position, origin, scale, and wrap
+void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 position, Vector2 origin, Vector2 scale, int wrap);
 
 // Display the final rendered view from the camera
 void M7_Camera_Render(M7_Camera* camera);
@@ -300,15 +300,15 @@ void M7_Camera_Unload(M7_Camera* camera)
  *
  * @param camera The camera to update.
  * @param texture The texture of the plane.
- * @param origin The origin of the plane.
+ * @param position The position of the plane.
  * @param scale The scale of the plane.
  * @param wrap The wrap mode for the plane.
  * @param backgroundColor The background color.
  */
-void M7_Camera_Update(M7_Camera* camera, Texture2D texture, Vector2 origin, Vector2 scale, int wrap, Color backgroundColor)
+void M7_Camera_Update(M7_Camera* camera, Texture2D texture, Vector2 position, Vector2 scale, int wrap, Color backgroundColor)
 {
     M7_Camera_Begin(camera, backgroundColor);
-        M7_Camera_DrawPlane(camera, texture, origin, scale, wrap);
+        M7_Camera_DrawPlane(camera, texture, position, (Vector2) { texture.width * 0.5f, texture.height * 0.5f }, scale, wrap);
     M7_Camera_End(camera);
 }
 
@@ -342,13 +342,18 @@ void M7_Camera_End(M7_Camera* camera)
 /**
  * Draw a plane using the Mode 7 camera.
  *
+ * TODO: Add parameter 'Rectangle source'
+ *       and make the shader compatible 
+ *       with this new feature.
+ *
  * @param camera The camera to use for drawing.
  * @param texture The texture of the plane.
+ * @param position The position of the plane.
  * @param origin The origin of the plane.
  * @param scale The scale of the plane.
  * @param wrap The wrap mode for the plane.
  */
-void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 origin, Vector2 scale, int wrap)
+void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 position, Vector2 origin, Vector2 scale, int wrap)
 {
     const float mapSize[2] = {
         texture.width * scale.x,
@@ -356,8 +361,8 @@ void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 origin, V
     };
 
     const float camPos[2] = {
-        camera->position.x + origin.x,
-        camera->position.y + origin.y
+        camera->position.x + position.x + origin.x,
+        camera->position.y + position.y + origin.y
     };
 
     SetShaderValue(camera->planeProgram.shader, camera->planeProgram.locMapSize, mapSize, SHADER_UNIFORM_VEC2);
@@ -365,10 +370,8 @@ void M7_Camera_DrawPlane(M7_Camera* camera, Texture2D texture, Vector2 origin, V
     SetShaderValue(camera->planeProgram.shader, camera->planeProgram.locWrap, &wrap, SHADER_UNIFORM_INT);
 
     BeginShaderMode(camera->planeProgram.shader);
-
         SetShaderValueTexture(camera->planeProgram.shader, camera->planeProgram.locMapTex, texture);
         DrawTexture(camera->target.texture, 0, 0, WHITE);
-
     EndShaderMode();
 }
 

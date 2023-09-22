@@ -46,7 +46,7 @@ int main(void)
     // Data loading
 
     Texture2D textureGrid = GenTextureGrid(512, 64);
-    Texture2D texturePlane = LoadTexture("res/ground.png");
+    Texture2D textureGround = LoadTexture("res/ground.png");
     Texture2D textureCharacter = LoadTexture("res/character.png");
 
     Rectangle srcTexCharac = { 0, 0, textureCharacter.width, textureCharacter.height };
@@ -59,7 +59,7 @@ int main(void)
 
     M7_Element *firstCharacter = M7_Texture_Add(&camera, textureCharacter, srcTexCharac, (Vector2) { 0, 0 }, (Vector2) { 8, 8 }, WHITE);
 
-    for (int i = 1; i < 9; i++)
+    for (int i = 1; i < 10; i++)
     {
         M7_Texture_Add(&camera, textureCharacter, srcTexCharac, (Vector2) { 0, i * -16 }, (Vector2) { 12, 12 }, WHITE);
         M7_Texture_Add(&camera, textureCharacter, srcTexCharac, (Vector2) { -16, i * -16 }, (Vector2) { 8, 8 }, WHITE);
@@ -92,7 +92,7 @@ int main(void)
 
         //M7_Camera_Update(
         //    &camera,
-        //    texturePlane,
+        //    textureGround,
         //    (Vector2) { 256, 256 },
         //    (Vector2){ 1.0f, 1.0f },
         //    IsKeyDown(KEY_SPACE), BLUE);
@@ -101,13 +101,30 @@ int main(void)
 
         M7_Camera_Begin(&camera, BLUE);
 
-            M7_Camera_DrawPlane(&camera, texturePlane, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            // NOTE: Displaying as many planes for performance testing purposes
 
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 256, 1024 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 256, -512 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            for (int y = -256; y < 256; y += textureGround.height)
+            {
+                for (int x = -256; x < 256; x += textureGround.width)
+                {
+                    M7_Camera_DrawPlane(
+                        &camera, textureGround, (Vector2) { x, y },
+                        (Vector2) { textureGround.width, textureGround.height },
+                        (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+                }
+            }
 
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 1024, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
-            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, 0 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, 0 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 0, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 0, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, -512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { -512, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
+            M7_Camera_DrawPlane(&camera, textureGrid, (Vector2) { 512, 512 }, (Vector2) { 256, 256 }, (Vector2){ 1.0f, 1.0f }, IsKeyDown(KEY_SPACE));
 
         M7_Camera_End(&camera);
 
@@ -123,7 +140,7 @@ int main(void)
     // Program closure
 
     UnloadTexture(textureCharacter);
-    UnloadTexture(texturePlane);
+    UnloadTexture(textureGround);
     UnloadTexture(textureGrid);
 
     M7_Camera_Unload(&camera);
